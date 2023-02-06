@@ -29,7 +29,7 @@ public class Preferences: ObservableObject {
   //    @Published public var favoriteEvents = [EKEvent]()
   
   public var favoriteEvents: [EKEvent] {
-    events.filter { CDStore.isFavorite($0) }
+    events.filter { CDStore.shared.isFavorite($0) }
   }
   
   @Published public var endDate = CDDefault.endDate {
