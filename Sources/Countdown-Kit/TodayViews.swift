@@ -10,7 +10,7 @@ import SwiftUI
 import EventKit
 import Combine
 import CoreData
-import MIFileManager
+import MIDataStore
 
 public enum CDWidget {
   case favorites

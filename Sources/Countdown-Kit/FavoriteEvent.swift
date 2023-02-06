@@ -6,7 +6,7 @@
 //  Copyright © 2020 Imthath. All rights reserved.
 //
 
-import MIFileManager
+import MIDataStore
 import CoreData
 import EventKit
 import SwiftUI
@@ -19,7 +19,7 @@ public class FavoriteModel: ObservableObject {
   public init(event: EKEvent) {
     self.event = event
     
-    if CDStore.isFavorite(event) {
+    if CDStore.shared.isFavorite(event) {
       image = Image(systemName: "heart.fill")
     } else {
       image = Image(systemName: "heart")
@@ -28,60 +28,56 @@ public class FavoriteModel: ObservableObject {
   
   public func toggle() {
     if isFavEvent {
-      CDStore.deleteEvent(withID: self.event.eventIdentifier)
+      CDStore.shared.deleteEvent(withID: self.event.eventIdentifier)
       self.image = Image(systemName: "heart")
     } else {
-      CDStore.favorite(self.event)
+      CDStore.shared.favorite(self.event)
       self.image = Image(systemName: "heart.fill")
     }
   }
   
-  public var isFavEvent: Bool { CDStore.isFavorite(event) }
+  public var isFavEvent: Bool { CDStore.shared.isFavorite(event) }
 }
 
-public class CDStore {
+public class CDStore: BaseStore {
   
-  static var entityName: String { FavEvent.entityName }
-  static var appGroup: String = ""
+  static let shared: CDStore = .init(modelName: FavEvent.entityName)
   
-  public static func prepare(forAppGroup groupName: String) {
-    CDStore.appGroup = groupName
-    MICoreData.initialize(with: container)
+  var entityName: String { FavEvent.entityName }
+  var appGroup: String = ""
+  
+  public func prepare(forAppGroup groupName: String) {
+    CDStore.shared.appGroup = groupName
   }
   
-  public static func isFavorite(_ event: EKEvent) -> Bool {
+  public func isFavorite(_ event: EKEvent) -> Bool {
     let fetchRequest = fetchRequestForEvent(withID: event.eventIdentifier)
     
-    guard let objects = try? MICoreData.viewContext?.fetch(fetchRequest) else {
+    guard let objects = try? mainContext.fetch(fetchRequest) else {
       return false
     }
     
     return !objects.isEmpty
   }
   
-  public static var allFavIdentifiers: [String] {
-    guard let objects = try? MICoreData.viewContext?.fetch(FavEvent.fetchRequest) as? [NSManagedObject] else {
+  public var allFavIdentifiers: [String] {
+    guard let objects = try? mainContext.fetch(FavEvent.fetchRequest) as? [NSManagedObject] else {
       return []
     }
     
     return objects.compactMap({ $0.value(forKey: FavEvent.id) as? String })
   }
   
-  //    public static var allFavorites: [FavoriteEvent] {
-  //        guard let objects = try? MICoreData.viewContext?.fetch(FavEvent.fetchRequest) as? [NSManagedObject] else {
+  //    public var allFavorites: [FavoriteEvent] {
+  //        guard let objects = try? mainContext?.fetch(FavEvent.fetchRequest) as? [NSManagedObject] else {
   //                return []
   //        }
   //
   //        return objects.compactMap({ $0.value(forKey: FavEvent.id) as? String })
   //    }
   
-  public static func favorite(_ event: EKEvent) {
-    guard let context = MICoreData.viewContext else {
-      "unable to save favorite into context".log()
-      return
-    }
-    
-    let object = NSEntityDescription.insertNewObject(forEntityName: entityName, into: context)
+  public func favorite(_ event: EKEvent) {
+    let object = NSEntityDescription.insertNewObject(forEntityName: entityName, into: mainContext)
     
     //        if let favEvent = object as? FavoriteEvent {
     //            favEvent.eventID = event.eventIdentifier
@@ -93,14 +89,14 @@ public class CDStore {
     
     "event saved with id - \(event.eventIdentifier ?? "")".log()
     
-    MICoreData.update()
+    mainContext.update()
   }
   
-  public static func deleteEvent(withID string: String) {
+  public func deleteEvent(withID string: String) {
     let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequestForEvent(withID: string))
     
     do {
-      try MICoreData.viewContext?.execute(batchDeleteRequest)
+      try mainContext.execute(batchDeleteRequest)
       "deleted event with id - \(string)".log()
     } catch {
       "Unable to delete entity with name \(entityName)".log()
@@ -111,23 +107,23 @@ public class CDStore {
     //        MICoreData.update()
   }
   
-  static func fetchRequestForEvent(withID string: String) -> NSFetchRequest<NSFetchRequestResult>{
+  func fetchRequestForEvent(withID string: String) -> NSFetchRequest<NSFetchRequestResult>{
     let fetchRequest = FavEvent.fetchRequest
     fetchRequest.predicate = NSPredicate(format: "\(FavEvent.id) = %@", string)
     return fetchRequest
   }
   
-  static var container: NSPersistentContainer {
+  public override func makeContainer() -> NSPersistentContainer {
     SharedContainer(name: "CountdownStore", managedObjectModel: objectModel)
   }
   
-  static var objectModel: NSManagedObjectModel {
+  var objectModel: NSManagedObjectModel {
     let model: NSManagedObjectModel = NSManagedObjectModel()
     model.entities = [favoriteEntity]
     return model
   }
   
-  static var favoriteEntity: NSEntityDescription {
+  var favoriteEntity: NSEntityDescription {
     let entity = NSEntityDescription()
     entity.name = entityName
     entity.addAttribute(name: FavEvent.id, type: .stringAttributeType, isUnique: true)
@@ -138,7 +134,7 @@ public class CDStore {
 
 class SharedContainer: NSPersistentCloudKitContainer {
   override open class func defaultDirectoryURL() -> URL {
-    let storeURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: CDStore.appGroup)
+    let storeURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: CDStore.shared.appGroup)
     return storeURL ?? super.defaultDirectoryURL()
   }
 }
