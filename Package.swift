@@ -4,13 +4,13 @@
 import PackageDescription
 
 let package = Package(
-  name: "Countdown-Kit",
+  name: "CountdownKit",
   platforms: [.iOS(.v15)],
   products: [
     // Products define the executables and libraries a package produces, and make them visible to other packages.
     .library(
-      name: "Countdown-Kit",
-      targets: ["Countdown-Kit"]),
+      name: "CountdownKit",
+      targets: ["CountdownKit"]),
   ],
   dependencies: [
     // Dependencies declare other packages that this package depends on.
@@ -22,13 +22,13 @@ let package = Package(
     // Targets are the basic building blocks of a package. A target can define a module or a test suite.
     // Targets can depend on other targets in this package, and on products in packages this package depends on.
     .target(
-      name: "Countdown-Kit",
+      name: "CountdownKit",
       dependencies: [
         .product(name: "SwiftDate", package: "SwiftDate"),
         .product(name: "MIDataStore", package: "mi-data-store"),
       ]),
     .testTarget(
-      name: "Countdown-KitTests",
-      dependencies: ["Countdown-Kit"]),
+      name: "CountdownKitTests",
+      dependencies: ["CountdownKit"]),
   ]
 )

@@ -123,7 +123,7 @@ public extension EKEvent {
       result.append("\(name), ")
     }
     
-    result.removeLast(2)
+//    result.removeLast(2)
     return result
   }
   var locationString: String { location ?? "" }
