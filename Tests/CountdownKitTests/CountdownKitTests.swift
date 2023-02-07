@@ -1,11 +1,11 @@
 import XCTest
-@testable import Countdown_Kit
+@testable import CountdownKit
 
-final class Countdown_KitTests: XCTestCase {
+final class CountdownKitTests: XCTestCase {
   func testExample() throws {
     // This is an example of a functional test case.
     // Use XCTAssert and related functions to verify your tests produce the correct
     // results.
-    XCTAssertEqual(Countdown_Kit().text, "Hello, World!")
+    XCTAssertEqual(CountdownKit().text, "Hello, World!")
   }
 }
