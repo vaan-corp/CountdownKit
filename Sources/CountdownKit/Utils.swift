@@ -32,6 +32,10 @@ public class Preferences: ObservableObject {
     events.filter { CDStore.shared.isFavorite($0) }
   }
   
+  public var upcomingEventsCount: Int {events.count }
+  
+  public var favoriteEventsCount: Int {favoriteEvents.count }
+  
   @Published public var endDate = CDDefault.endDate {
     didSet { CDDefault.endDate = endDate }
   }
