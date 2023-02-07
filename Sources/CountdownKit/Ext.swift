@@ -147,7 +147,7 @@ public extension EKEvent {
       
     }
     
-    result.removeLast(2)
+//    result.removeLast(2)
     return result
   }
   var urlString: String { url?.absoluteString ?? "" }
